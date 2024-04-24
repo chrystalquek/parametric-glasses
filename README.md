@@ -1,1 +1,30 @@
-It is obviously a mess now, but the main file to run is main.py
+# Parametric Glasses
+
+Process:
+1. Takes in a photo of a person's head and outputs the recommended bridge width and frame width of spectacles. (done)
+2. Takes in a photo of a photo and outputs a 2D file. (kiv)
+3. Produces a STL file. (kiv)
+
+
+
+# Installation
+
+```
+conda create --name mediapipe_iris python=3.7
+conda activate mediapipe_iris
+pip install -r requirements.txt
+```
+
+# Execution
+
+python3 compute-parameters.py --image_filename me.jpeg
+
+
+# Notes
+- Designed for adult heads
+- Returns default bridge width and frame width parameters if out of human range.
+
+
+# Credits
+
+Thanks to https://github.com/Morris88826/MediaPipe_Iris
