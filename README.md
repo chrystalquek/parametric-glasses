@@ -25,7 +25,7 @@ install OpenScad
 
 python3 face-landmarks.py --image_filename [input_file]
 python3 lens.py [input_file] [output_file]
-
+python backend.py
 
 # Notes
 - Designed for adult heads
