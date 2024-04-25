@@ -4,7 +4,7 @@ attrs==22.1.0
 cachetools==5.2.0
 charset-normalizer==2.1.1
 cycler==0.11.0
-ezdxf==1.2.0
+ezdxf==1.0.3
 flatbuffers==22.12.6
 fonttools==4.38.0
 gast==0.4.0

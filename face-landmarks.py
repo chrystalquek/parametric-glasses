@@ -6,9 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from PIL import Image, ImageOps
-from libs.helper_func import vid2images, images2vid
-from libs.face import FaceDetector, FaceLandmarksDetector
-from libs.iris import IrisDetector
+from face_landmarks.libs.helper_func import vid2images, images2vid
+from face_landmarks.libs.face import FaceDetector, FaceLandmarksDetector
+from face_landmarks.libs.iris import IrisDetector
 
 IRIS_DIAMETER_CM = 1.18
 LENS_WIDTH_CM = 5.2 # this shouldn't be a constant, get from justin's code
@@ -107,18 +107,18 @@ def get_spectacle_parameters(temple_to_temple_distance_px, corner_eyes_distance_
 
 
 def demo(filename):
-    try:
-        input_image = np.array(ImageOps.exif_transpose(Image.open(filename)).convert('RGB')) # (columns, row, depth)
-        
-        temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px = get_face_landmarks_pixels(input_image)
-        
-        bridge_width, frame_width = get_spectacle_parameters(temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px)
-        
-        return bridge_width, frame_width
+    # try:
+    input_image = np.array(ImageOps.exif_transpose(Image.open(filename)).convert('RGB')) # (columns, row, depth)
     
-    except Exception as e:
+    temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px = get_face_landmarks_pixels(input_image)
+    
+    bridge_width, frame_width = get_spectacle_parameters(temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px)
+    
+    return bridge_width, frame_width
+    
+    # except Exception as e:
         
-        return STANDARD_BRIDGE_WIDTH, STANDARD_FRAME_WIDTH
+    #     return STANDARD_BRIDGE_WIDTH, STANDARD_FRAME_WIDTH
     
     
 
