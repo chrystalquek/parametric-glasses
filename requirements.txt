@@ -4,6 +4,7 @@ attrs==22.1.0
 cachetools==5.2.0
 charset-normalizer==2.1.1
 cycler==0.11.0
+ezdxf==1.2.0
 flatbuffers==22.12.6
 fonttools==4.38.0
 gast==0.4.0
@@ -50,5 +51,3 @@ tqdm==4.64.1
 typing_extensions==4.4.0
 urllib3==1.26.13
 Werkzeug==2.2.2
-# wrapt==1.14.1
-# zipp==3.11.0
