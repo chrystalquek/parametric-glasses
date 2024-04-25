@@ -4,6 +4,8 @@ import ezdxf
 import sys
 
 REAL_SIZE = 53
+LOWER_THRESH = 60
+THICKNESS_mm = 5
 
 input_file = sys.argv[1]
 im = cv2.imread(input_file)
@@ -28,7 +30,7 @@ imCopy = im.copy()
 # convert to grayscale and detect edges of lens
 imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
 blurred = cv2.GaussianBlur(imgray, (3, 3), 0)
-edges = cv2.Canny(blurred,100,200)
+edges = cv2.Canny(blurred,LOWER_THRESH,200)
 
 # remove blue pixels from image
 edges[max(blue_bbox[1]-5,0):blue_bbox[1]+blue_bbox[3]+10,max(blue_bbox[0]-5,0):blue_bbox[0]+blue_bbox[2]+10] = 0
@@ -38,9 +40,10 @@ contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIM
 ## Extend contour to get frame 
 contour_image = np.zeros(im.shape, dtype=np.uint8)
 
-cv2.drawContours(contour_image, contours, 1, (0,255,0), 3)
+cv2.drawContours(contour_image, contours, 0, (0,255,0), 3)
 
-dilation_pixels = 50
+dilation_pixels = int(THICKNESS_mm/pixels2mm * 2)
+print(dilation_pixels)
 
 # Dilate the contour
 kernel = np.ones((dilation_pixels, dilation_pixels), np.uint8)
