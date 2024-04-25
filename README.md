@@ -19,6 +19,7 @@ conda create --name mediapipe_iris python=3.7
 conda activate mediapipe_iris
 pip install -r requirements.txt
 ```
+install OpenScad
 
 ## Execution
 
