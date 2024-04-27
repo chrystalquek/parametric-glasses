@@ -13,9 +13,8 @@ def index():
 def upload_file():
     if request.method == 'POST':
         try:
-            # Retrieve files and parameter
+            # Retrieve front lens file and parameter
             front_lens = request.files['frontLens']
-            top_lens = request.files['topLens']
             bridge_length = request.form['bridgeLength']
 
             # Generate unique IDs for the session or use the timestamp
@@ -23,22 +22,25 @@ def upload_file():
             uploads_dir = 'uploads'
             outputs_dir = 'outputs'
             front_lens_filename = f"{unique_id}_front.dxf"
-            top_lens_filename = f"{unique_id}_top.dxf"
             front_lens_path = os.path.join(uploads_dir, front_lens_filename).replace('\\', '/')
-            top_lens_path = os.path.join(uploads_dir, top_lens_filename).replace('\\', '/')
             output_stl_path = os.path.join(outputs_dir, f"{unique_id}_frame.stl").replace('\\', '/')
 
             # Ensure uploads and outputs directories exist
             os.makedirs(uploads_dir, exist_ok=True)
             os.makedirs(outputs_dir, exist_ok=True)
 
-            # Save files
+            # Save the front lens file
             front_lens.save(front_lens_path)
-            top_lens.save(top_lens_path)
 
-            # Verify file existence before executing OpenSCAD
-            if not os.path.isfile(front_lens_path) or not os.path.isfile(top_lens_path):
-                return jsonify({"error": "DXF file not found"}), 404
+            # Check if top lens file was provided, use default if not
+            if 'topLens' in request.files and request.files['topLens'].filename:
+                top_lens = request.files['topLens']
+                top_lens_filename = f"{unique_id}_top.dxf"
+                top_lens_path = os.path.join(uploads_dir, top_lens_filename).replace('\\', '/')
+                top_lens.save(top_lens_path)
+            else:
+                # Set to the default top lens file if not provided
+                top_lens_path = os.path.join(uploads_dir, 'RightLensTopView.dxf').replace('\\', '/')
 
             # OpenSCAD executable path
             openscad_path = r"C:\Program Files\OpenSCAD\openscad.exe"
@@ -48,13 +50,10 @@ def upload_file():
                 openscad_path,                                  # OpenSCAD executable
                 "-o", os.path.abspath(output_stl_path),         # Output file format STL
                 "-D", f'front_view="{front_lens_path}"',        # Inject front view DXF path
-                "-D", f'top_view="{top_lens_path}"',           # Inject top view DXF path
+                "-D", f'top_view="{top_lens_path}"',            # Inject top view DXF path or default
                 "-D", f'bridge_length={bridge_length}',         # Inject bridge length
                 "Frame.scad"                                    # OpenSCAD script
             ]
-
-            # Log command for debugging
-            print("OpenSCAD command:", ' '.join(command))
 
             # Run OpenSCAD command
             subprocess.run(command, check=True)
@@ -65,8 +64,8 @@ def upload_file():
             # If any error occurs, return the error message
             return jsonify({"error": str(e)}), 500
 
-    # If no files were uploaded
-    return jsonify({"error": "No files uploaded"}), 400
+    # If no front lens file was uploaded
+    return jsonify({"error": "Front lens file not uploaded"}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
