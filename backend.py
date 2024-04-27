@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_file, render_template
 import subprocess
 import os
+import platform
 import uuid
 
 app = Flask(__name__)
@@ -43,7 +44,10 @@ def upload_file():
                 top_lens_path = os.path.join(uploads_dir, 'RightLensTopView.dxf').replace('\\', '/')
 
             # OpenSCAD executable path
-            openscad_path = r"C:\Program Files\OpenSCAD\openscad.exe"
+            if platform.system() == 'Windows':
+                openscad_path = r"C:\Program Files\OpenSCAD\openscad.exe"
+            elif platform.system() == 'Darwin':  # Darwin is the system name for macOS
+                openscad_path = "/usr/local/bin/openscad"
 
             # Construct the OpenSCAD command
             command = [
