@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customize Your Glasses</title>
+
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -12,13 +12,11 @@
         margin: 0;
         padding: 0;
     }
-
     h1 {
         text-align: center;
         margin-top: 50px;
         color: #ede4d1;
     }
-
     form {
         max-width: 500px;
         margin: 0 auto;
@@ -27,14 +25,12 @@
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-
     label {
         display: block;
         color: #106A43;
         margin-bottom: 10px;
         font-weight: bold;
     }
-
     input[type="file"],
     input[type="number"],
     input[type="submit"] {
@@ -45,13 +41,11 @@
         border-radius: 4px;
         box-sizing: border-box;
     }
-
     input[type="submit"] {
         background-color: #15722d;
         color: #ede4d1;
         cursor: pointer;
     }
-
     input[type="submit"]:hover {
         background-color: #125a24;
     }
@@ -59,19 +53,30 @@
 </head>
 <body>
     <h1>Customize Your Glasses</h1>
-    <img src="{{ url_for('static', filename='glasses.png') }}" alt="Glasses" style="display: block; margin-left: auto; margin-right: auto; width: 20%;">
-    <form id="uploadForm" enctype="multipart/form-data" method="post">
-        <label for="frontLens">Upload Front View DXF:</label>
-        <input type="file" id="frontLens" name="frontLens" accept=".dxf">
-
-        <label for="topLens">Upload Top View DXF (optional):</label>
-        <input type="file" id="topLens" name="topLens" accept=".dxf">
-
-        <label for="bridgeLength">Bridge Length (parameter_g):</label>
-        <input type="number" id="bridgeLength" name="bridgeLength" step="0.1">
-
-        <input type="submit" value="Generate Now">
-    </form>
+    <img src="{{ url_for('static', filename='glasses.png') }}" alt="Glasses" style="display: block; margin-left: auto; margin-right: auto; max-width: 200px;">
+    <div style="display: flex; justify-content: space-around; padding: 20px;">
+        <div style="max-width: 400px;">
+            <h5 style="color: white"> If you don't have dxf files of your lens, upload image now: </h5>
+            <form id="imageUploadForm" action="/upload_image" enctype="multipart/form-data" method="post">
+                <label for="lensImage">Upload Lens Image (JPEG/PNG):</label>
+                <input type="file" id="lensImage" name="frontLensImage" accept="image/jpeg, image/png">
+                <label for="bridgeLength">Bridge Length (parameter_g):</label>
+                <input type="number" id="bridgeLength" name="bridgeLength" step="0.1">
+                <input type="submit" value="Generate DXF">
+            </form>
+        </div>
+        
+        <div style="max-width: 400px;">
+            <h5 style="color: white"> With dxf files of your lens: </h5>
+            <form id="dxfUploadForm" action="/upload_dxf" enctype="multipart/form-data" method="post">
+                <label for="frontLens">Upload Front View DXF:</label>
+                <input type="file" id="frontLens" name="frontLens" accept=".dxf">
+                <input type="submit" value="Generate Printable STL">
+            </form>
+        </div>
+        
+    </div>
+    
 
     <script>
         document.getElementById('uploadForm').onsubmit = function(event) {
@@ -83,15 +88,25 @@
             })
             .then(response => {
                 if (response.ok) {
-                    return response.json().then(data => alert('Upload successful!'));
+                    return response.blob();
                 } else {
-                    return response.json().then(data => Promise.reject(data));
+                    throw new Error('Network response was not ok.');
                 }
             })
+            .then(blob => {
+                // Assuming the server returns a file to be downloaded
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'custom_glasses.dxf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                alert('Your file has been downloaded!');
+            })
             .catch(error => {
-                if (error.hasOwnProperty('error')) {
-                    alert(`Error: ${error.error}`);
-                }
+                alert('Upload failed:', error);
             });
         };
     </script>
