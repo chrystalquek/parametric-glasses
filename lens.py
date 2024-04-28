@@ -53,7 +53,7 @@ _,dil_thresh = cv2.threshold(dilated_contour,127,255,0)
 dil_contours, dil_hierarchy = cv2.findContours(dil_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 squeezed = [np.squeeze(cnt, axis=1) for cnt in [contours[0]]]
-squeezed.extend([np.squeeze(cnt, axis=1) for cnt in [dil_contours[0]]])
+# squeezed.extend([np.squeeze(cnt, axis=1) for cnt in [dil_contours[0]]])
 
 # Save contours as dxf vector file
 dwg = ezdxf.new("R2010")
