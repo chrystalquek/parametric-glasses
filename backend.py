@@ -75,7 +75,7 @@ def upload_dxf():
                 openscad_path,
                 "-o", output_stl_path,
                 "-D", f'input_dxf="{dxf_path}"',  # Make sure your SCAD script uses this variable
-                "path_to_your_scad_file.scad"  # Path to your SCAD script
+                "Frame.scad"  # Path to your SCAD script
             ]
 
             # Execute the OpenSCAD command
