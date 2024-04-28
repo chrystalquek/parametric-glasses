@@ -50,13 +50,39 @@
         background-color: #125a24;
     }
 </style>
+
 </head>
-<body>
-    <h1>Customize Your Glasses</h1>
-    <img src="{{ url_for('static', filename='glasses.png') }}" alt="Glasses" style="display: block; margin-left: auto; margin-right: auto; max-width: 200px;">
-    <div style="display: flex; justify-content: space-around; padding: 20px;">
-        <div style="max-width: 400px;">
-            <h5 style="color: white"> If you don't have dxf files of your lens, upload image now: </h5>
+<body style="position: relative; background-color: #106A43;">
+    <style>
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(from 90deg at 1px 1px, #0000 90deg, rgb(200, 191, 170) 0) 0 0 / 35px 35px;
+            opacity: 0.4;
+            z-index: -1;
+        }
+    </style>
+
+    <h1 style="margin: 18px; font-family: math;">Customize Your Glasses</h1>
+    <div style="display: flex; justify-content: space-around; align-items: center; padding: 20px; padding-top: 5px; padding-bottom: 5px; margin-top: 0px;">
+        <div style="flex: 1; text-align: center; max-width: 300px;">
+            <iframe src="https://giphy.com/embed/cRsdYnYOjZtsY" style="width: 100%; max-height: 200px; margin-left: 15px; object-fit: cover;" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div style="flex: 1; text-align: center; max-width: 300px;">
+            <img src="{{ url_for('static', filename='glasses.png') }}" alt="Glasses" style="width: 70%; max-height: 200px; object-fit: cover;">
+        </div>
+        <div style="flex: 1; text-align: center; max-width: 300px;">
+            <iframe src="https://giphy.com/embed/CKkYMJ0hEGYz6" style="width: 100%; max-height: 200px; margin-right: 15px; object-fit: cover;" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-around; max-width: 900px; margin: auto; background-color: #125a34; padding: 20px; border-radius: 10px; border: 2px solid #ede4d1;">
+        <div style="width: 400px;">
+            <h4 style="color: white">Upload image of lens now:</h4>
             <form id="imageUploadForm" action="/upload_image" enctype="multipart/form-data" method="post">
                 <label for="lensImage">Upload Lens Image (JPEG/PNG):</label>
                 <input type="file" id="lensImage" name="frontLensImage" accept="image/jpeg, image/png">
@@ -65,19 +91,17 @@
                 <input type="submit" value="Generate DXF">
             </form>
         </div>
-        
-        <div style="max-width: 400px;">
-            <h5 style="color: white"> With dxf files of your lens: </h5>
+
+        <div style="width: 400px;">
+            <h4 style="color: white">Upload dxf of lens now:</h4>
             <form id="dxfUploadForm" action="/upload_dxf" enctype="multipart/form-data" method="post">
                 <label for="frontLens">Upload Front View DXF:</label>
                 <input type="file" id="frontLens" name="frontLens" accept=".dxf">
                 <input type="submit" value="Generate Printable STL">
             </form>
         </div>
-        
     </div>
-    
-
+  
     <script>
         document.getElementById('uploadForm').onsubmit = function(event) {
             event.preventDefault();
