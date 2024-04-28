@@ -82,57 +82,80 @@
 
     <div style="display: flex; justify-content: space-around; max-width: 900px; margin: auto; background-color: #125a34; padding: 20px; border-radius: 10px; border: 2px solid #ede4d1;">
         <div style="width: 400px;">
-            <h4 style="color: white">Upload image of lens now:</h4>
+            <h4 style="color: white">Step 1 Upload image of lens now:</h4>
             <form id="imageUploadForm" action="/upload_image" enctype="multipart/form-data" method="post">
                 <label for="lensImage">Upload Lens Image (JPEG/PNG):</label>
                 <input type="file" id="lensImage" name="frontLensImage" accept="image/jpeg, image/png">
-                <label for="bridgeLength">Bridge Length (parameter_g):</label>
-                <input type="number" id="bridgeLength" name="bridgeLength" step="0.1">
                 <input type="submit" value="Generate DXF">
             </form>
         </div>
 
         <div style="width: 400px;">
-            <h4 style="color: white">Upload dxf of lens now:</h4>
+            <h4 style="color: white">Step 2 Upload image of yourself now:</h4>
+                <video id="video" width="360" height="240" autoplay></video>
+                <button id="captureButton">Capture</button>
+                <canvas id="canvas" width="360" height="240" style="display:none;"></canvas>
+            </form>
+        </div>
+
+    </div>
+
+    <div style="display: flex; justify-content: space-around; max-width: 900px; margin: auto; background-color: #125a34; padding: 20px; border-radius: 10px; border: 2px solid #ede4d1;">
+        <div style="width: 400px;">
+            <h4 style="color: white">Step 3 Upload dxf of lens and bridgeLength now:</h4>
             <form id="dxfUploadForm" action="/upload_dxf" enctype="multipart/form-data" method="post">
                 <label for="frontLens">Upload Front View DXF:</label>
                 <input type="file" id="frontLens" name="frontLens" accept=".dxf">
+                <label for="bridgeLength">Bridge Length (parameter_g):</label>
+                <input type="number" id="bridgeLength" name="bridgeLength">
                 <input type="submit" value="Generate Printable STL">
             </form>
         </div>
+
     </div>
   
     <script>
-        document.getElementById('uploadForm').onsubmit = function(event) {
-            event.preventDefault();
-            const formData = new FormData(document.getElementById('uploadForm'));
-            fetch('/upload', {
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.blob();
-                } else {
-                    throw new Error('Network response was not ok.');
-                }
-            })
-            .then(blob => {
-                // Assuming the server returns a file to be downloaded
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = 'custom_glasses.dxf';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                alert('Your file has been downloaded!');
+
+        // webcame nonsense below
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('captureButton');
+        const resultDiv = document.getElementById('result');
+
+        // Check for webcam support
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                console.error("Webcam is working")
+                video.srcObject = stream;
             })
             .catch(error => {
-                alert('Upload failed:', error);
+                console.error('Error accessing webcam:', error);
             });
-        };
+
+        // Capture button click event
+        captureButton.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            // Send captured image to backend for processing
+            fetch('/get_face_landmarks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: imageData }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('bridgeLength').value = data.nose_bridge_length;
+            })
+            .catch(error => {
+                console.error('Error processing image:', error);
+            })
+        });
+        
     </script>
 </body>
 </html>

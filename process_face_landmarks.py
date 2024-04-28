@@ -60,7 +60,7 @@ def get_iris_diameter(iris_detector, input_image, face_landmarks_detection):
     iris_diameter = np.mean([np.abs(left_eye_right[0] - left_eye_left[0]), np.abs(right_eye_left[0] - right_eye_right[0])])
     return left_eye_pts, right_eye_pts, iris_diameter
 
-def get_face_landmarks_pixels(input_image):
+def get_face_landmarks_pixels(input_image, is_demo):
     face_landmarks_detector = FaceLandmarksDetector()
     iris_detector = IrisDetector()
     face_landmarks_detections = face_landmarks_detector.predict(input_image)
@@ -68,23 +68,29 @@ def get_face_landmarks_pixels(input_image):
     
     # 1. compute temples -> width of specs
     temples, temple_to_temple_distance = get_temples_width(face_landmarks_detection)
-    face_landmarks_detector.visualize(input_image, temples)
-    # print("temple_to_temple_distance", temple_to_temple_distance)
+    if is_demo:
+        face_landmarks_detector.visualize(input_image, temples)
+        # print("temple_to_temple_distance", temple_to_temple_distance)
     
     # 2. corner of eyes -> width of bridge
     eyes, corner_eyes_distance = get_eye_corners(face_landmarks_detector, face_landmarks_detection)
-    face_landmarks_detector.visualize(input_image, eyes)
-    # print("corner_eyes_distance", corner_eyes_distance)
+    if is_demo:
+        face_landmarks_detector.visualize(input_image, eyes)
+        # print("corner_eyes_distance", corner_eyes_distance)
 
     # 3. iris diameter -> scale from px to cm
     left_eye_pts, right_eye_pts, iris_diameter = get_iris_diameter(iris_detector, input_image, face_landmarks_detection)
-    plt.imshow(input_image)
-    plt.scatter(left_eye_pts[:, 0], left_eye_pts[:, 1], s=3)
-    plt.scatter(right_eye_pts[:, 0], right_eye_pts[:, 1], s=2)
-    plt.show()
+    if is_demo:
+        plt.imshow(input_image)
+        plt.scatter(left_eye_pts[:, 0], left_eye_pts[:, 1], s=3)
+        plt.scatter(right_eye_pts[:, 0], right_eye_pts[:, 1], s=2)
+        plt.show()
     # print("iris_diameter", iris_diameter)
     
-    return temple_to_temple_distance, corner_eyes_distance, iris_diameter
+    if is_demo:
+        return temple_to_temple_distance, corner_eyes_distance, iris_diameter
+    else:
+        return temple_to_temple_distance, corner_eyes_distance, iris_diameter, temples, eyes, left_eye_pts, right_eye_pts
 
 def get_spectacle_parameters(temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px):
     # scale from px to cm
@@ -119,6 +125,22 @@ def demo(filename):
     # except Exception as e:
         
     #     return STANDARD_BRIDGE_WIDTH, STANDARD_FRAME_WIDTH
+    
+    
+    
+def no_demo(img):
+    try:
+        input_image = np.array(img) # .convert('RGB') # (columns, row, depth)
+        
+        temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px, temples, eyes, left_eye_pts, right_eye_pts = get_face_landmarks_pixels(input_image, is_demo=False)
+        
+        bridge_width, frame_width = get_spectacle_parameters(temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px)
+        
+        return bridge_width, frame_width
+    
+    except AssertionError as e:
+        
+        return STANDARD_BRIDGE_WIDTH, STANDARD_FRAME_WIDTH
     
     
 

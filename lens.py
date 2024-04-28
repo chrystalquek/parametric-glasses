@@ -52,7 +52,7 @@ def convert_to_dxf(input_file, output_file):
     dil_contours, dil_hierarchy = cv2.findContours(dil_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     squeezed = [np.squeeze(cnt, axis=1) for cnt in [contours[0]]]
-    squeezed.extend([np.squeeze(cnt, axis=1) for cnt in [dil_contours[0]]])
+    # squeezed.extend([np.squeeze(cnt, axis=1) for cnt in [dil_contours[0]]])
 
     # Save contours as dxf vector file
     dwg = ezdxf.new('R2010')
@@ -60,10 +60,10 @@ def convert_to_dxf(input_file, output_file):
     dwg.layers.new(name='lens_outline', dxfattribs={'color': 7})
 
     for ctr in squeezed:
-        for n in range(len(ctr) - 1):
-            x_coord_start, y_coord_start = ctr[n] * pixels2mm
-            x_coord_end, y_coord_end = ctr[n+1] * pixels2mm
-            msp.add_line((x_coord_start, y_coord_start), (x_coord_end, y_coord_end), dxfattribs={'layer': 'lens_outline', 'lineweight': -3})
+        for n in range(len(ctr)):
+            x_coord = ctr[n] * pixels2mm
+            y_coord = ctr[(n+1)%len(ctr)] * pixels2mm
+            msp.add_line(x_coord, y_coord , dxfattribs={"layer": "lens_outline", "lineweight": -3})
 
     dwg.saveas(output_file)
 

@@ -6,6 +6,11 @@ import platform
 import uuid
 from lens import convert_to_dxf
 import logging
+import base64
+from PIL import Image
+import io
+from process_face_landmarks import no_demo
+
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -23,11 +28,6 @@ def upload_image():
             if not front_lens_image:
                 app.logger.error("No image file provided")
                 return jsonify({"error": "No image file provided"}), 400
-
-            bridge_length = request.form.get('bridgeLength')
-            if not bridge_length:
-                app.logger.error("No bridge length provided")
-                return jsonify({"error": "No bridge length provided"}), 400
 
             # Generate unique IDs for the session or use the timestamp
             unique_id = uuid.uuid4().hex
@@ -68,13 +68,21 @@ def upload_dxf():
 
             # Define the path for the output STL
             output_stl_path = os.path.join('outputs', f"{unique_id}_frame.stl")
+            
+            # get bridge length
+            bridge_length = float(request.form.get('bridgeLength')) * 10
+            print("bridge_length", bridge_length)
+            if not bridge_length:
+                app.logger.error("No bridge length provided")
+                return jsonify({"error": "No bridge length provided"}), 400
 
             # Define the OpenSCAD command
-            openscad_path = "/usr/bin/openscad" if platform.system() != 'Windows' else r"C:\Program Files\OpenSCAD\openscad.exe"
+            openscad_path = "/usr/local/bin/openscad" if platform.system() != 'Windows' else r"C:\Program Files\OpenSCAD\openscad.exe"
             command = [
                 openscad_path,
                 "-o", output_stl_path,
-                "-D", f'input_dxf="{dxf_path}"',  # Make sure your SCAD script uses this variable
+                "-D", f'front_view="{dxf_path}"',  # Make sure your SCAD script uses this variable
+                "-D", f'bridge_length={bridge_length}',
                 "Frame.scad"  # Path to your SCAD script
             ]
 
@@ -96,6 +104,18 @@ def upload_dxf():
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in {'dxf'}
+           
+           
+@app.route('/get_face_landmarks', methods=['POST'])
+def get_face_landmarks():
+    
+    image_data = request.json.get('image')
+    image_bytes = base64.b64decode(image_data.split(',')[1])
+    image_pil = Image.open(io.BytesIO(image_bytes))
+
+    bridge_width, frame_width = no_demo(image_pil)
+    
+    return jsonify({'nose_bridge_length': bridge_width}) # TODO return photos
 
 if __name__ == '__main__':
     app.run(debug=True)
