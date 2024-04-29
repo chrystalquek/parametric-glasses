@@ -2,3 +2,5 @@
 *.jpeg
 *.pyc
 *.dxf
+outputs/
+uploads/
