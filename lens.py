@@ -34,8 +34,12 @@ edges = cv2.Canny(blurred,LOWER_THRESH,200)
 
 # remove blue pixels from image
 edges[max(blue_bbox[1]-5,0):blue_bbox[1]+blue_bbox[3]+10,max(blue_bbox[0]-5,0):blue_bbox[0]+blue_bbox[2]+10] = 0
+
+# find contours of lens
 ret,thresh = cv2.threshold(edges,127,255,0)
 contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+bbox = cv2.boundingRect(contours[0])
+print(bbox[0]*pixels2mm," ",bbox[1]* pixels2mm)
 
 ## Extend contour to get frame 
 contour_image = np.zeros(im.shape, dtype=np.uint8)
@@ -43,7 +47,7 @@ contour_image = np.zeros(im.shape, dtype=np.uint8)
 cv2.drawContours(contour_image, contours, 0, (0,255,0), 3)
 
 dilation_pixels = int(THICKNESS_mm/pixels2mm * 2)
-print(dilation_pixels)
+
 
 # Dilate the contour
 kernel = np.ones((dilation_pixels, dilation_pixels), np.uint8)
