@@ -18,33 +18,26 @@ parameter_h = 1.3;
 
 parameter_i = 100;
 
+bbox_x = 0;
+bbox_y = 0;
+
 // Right lens
 module lens() {
-	intersection() {
-		linear_extrude(height=15)
-			import(front_view,$fn=250);
-		translate([0,20,0])
-			rotate( [90,0,0] )
-				linear_extrude(height=50)
-					import(top_view,$fn=250);
-	}
+	
+  linear_extrude(height=15)
+      rotate([180,0,0])
+          translate([-bbox_x,-bbox_y-15,0])
+              import(front_view,$fn=250, layer="lens_outline");
+		
 }
-
+    
 module lens_case() {
-  translate([lensWidth/2, (lensHeight+parameter_a*2)/lensHeight * -(parameter_c + lensHeight/2), 0])
-    difference() {
-      union() {
-        linear_extrude(height = 20)
-          scale([(lensWidth+parameter_a*2)/lensWidth,(lensHeight+parameter_a*2)/lensHeight])
-            translate([-lensWidth/2, parameter_c + lensHeight/2, 0])
+	
+  linear_extrude(height=20)
+      rotate([180,0,0])
+          translate([-bbox_x,-bbox_y-15,0])
               import(front_view,$fn=250);
-      }
-      translate([0, 0, -1])
-        linear_extrude(height=100)
-          scale([(lensWidth-parameter_b*2)/lensWidth,(lensHeight-parameter_b*2)/lensHeight])
-            translate([-lensWidth/2, parameter_c + lensHeight/2, 0])
-              import(front_view,$fn=250);	
-    }
+		
 }
 
 module lens_assembly() {
@@ -91,9 +84,9 @@ module bridge() {
 	difference() {
 		union() {
 			translate([0,4,9/2])
-				cube([bridge_length - parameter_a/2, 4, 9],center=true);
+				cube([bridge_length - parameter_a/2 + 2, 4, 9],center=true);
 			translate([0,6,9/2])
-				cube([bridge_length - parameter_a/2 + parameter_h, 2, 9],center=true);
+				cube([bridge_length - parameter_a/2 + parameter_h + 2, 2, 9],center=true);
 		}
 
 		union() {
