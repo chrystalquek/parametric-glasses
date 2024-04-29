@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, render_template
+from flask import Flask, request, jsonify, send_file, render_template, session
 from werkzeug.utils import secure_filename  # Import secure_filename
 import subprocess
 import os
@@ -13,6 +13,7 @@ from process_face_landmarks import no_demo
 
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
@@ -46,7 +47,12 @@ def upload_image():
             app.logger.info("Saved image file")
 
             # Convert the image to DXF using the function from lens.py
-            convert_to_dxf(front_lens_image_path, front_lens_dxf_path)
+            bbox_x, bbox_y = convert_to_dxf(front_lens_image_path, front_lens_dxf_path)
+            
+            session['bbox_x'] = bbox_x
+            session['bbox_y'] = bbox_y
+            
+            
             app.logger.info("Converted image to DXF")
 
             # Return the generated DXF file to the client
@@ -75,6 +81,10 @@ def upload_dxf():
             if not bridge_length:
                 app.logger.error("No bridge length provided")
                 return jsonify({"error": "No bridge length provided"}), 400
+            
+            bbox_x = session.get('bbox_x', 'not set')
+            bbox_y = session.get('bbox_y', 'not set')
+            
 
             # Define the OpenSCAD command
             openscad_path = "/usr/local/bin/openscad" if platform.system() != 'Windows' else r"C:\Program Files\OpenSCAD\openscad.exe"
@@ -83,6 +93,8 @@ def upload_dxf():
                 "-o", output_stl_path,
                 "-D", f'front_view="{dxf_path}"',  # Make sure your SCAD script uses this variable
                 "-D", f'bridge_length={bridge_length}',
+                "-D", f'bbox_x={bbox_x}',
+                "-D", f'bbox_y={bbox_y}',
                 "Frame.scad"  # Path to your SCAD script
             ]
 
