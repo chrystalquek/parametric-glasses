@@ -5,7 +5,7 @@ import sys
 
 REAL_SIZE = 53
 LOWER_THRESH = 40
-THICKNESS_mm = 5
+THICKNESS_mm = 3
 
 input_file = sys.argv[1]
 im = cv2.imread(input_file)
@@ -50,32 +50,37 @@ for i in range(len(sorted_contours)):
 
 hull= cv2.convexHull(com_contour, False)
 
-# find bounding box of contour
-bbox = cv2.boundingRect(hull)
-print(bbox[0]*pixels2mm," ",bbox[1]* pixels2mm)
-
 ## Extend contour to get frame 
-# contour_image = np.zeros(im.shape, dtype=np.uint8)
-# cv2.drawContours(contour_image, contours, 0, (0,255,0), 3)
-# dilation_pixels = int(THICKNESS_mm/pixels2mm * 2)
+contour_image = np.zeros(im.shape, dtype=np.uint8)
+cv2.drawContours(contour_image, [hull], -1, (0,255,0), 3)
+dilation_pixels = int(THICKNESS_mm/pixels2mm * 2)
 
-# Dilate the contour
-# kernel = np.ones((dilation_pixels, dilation_pixels), np.uint8)
-# dilated_contour = cv2.dilate(contour_image, kernel, iterations=1)
+## Dilate the contour
+kernel = np.ones((dilation_pixels, dilation_pixels), np.uint8)
+dilated_contour = cv2.dilate(contour_image, kernel, iterations=1)
 
 # Find contours of dilation to get frame outline
-# dilated_contour = cv2.cvtColor(dilated_contour,cv2.COLOR_BGR2GRAY)
-# _,dil_thresh = cv2.threshold(dilated_contour,127,255,0)
-# dil_contours, dil_hierarchy = cv2.findContours(dil_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+dilated_contour = cv2.cvtColor(dilated_contour,cv2.COLOR_BGR2GRAY)
+_,dil_thresh = cv2.threshold(dilated_contour,127,255,0)
+dil_contours, dil_hierarchy = cv2.findContours(dil_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# find bounding box of contour
+bbox = cv2.boundingRect(dil_contours[0])
+print(bbox[0]*pixels2mm," ",bbox[1]* pixels2mm)
 
 # squeezed = [np.squeeze(cnt, axis=1) for cnt in [contours[0]]]
-# squeezed.extend([np.squeeze(cnt, axis=1) for cnt in [dil_contours[0]]])
+
 squeezed = [np.squeeze(hull, axis=1)]
+
+# squeezed.extend([np.squeeze(cnt, axis=1) for cnt in [dil_contours[0]]])
+
+squeezed2 = [np.squeeze(dil_contours[0], axis=1)]
 
 # Save contours as dxf vector file
 dwg = ezdxf.new("R2010")
 msp = dwg.modelspace()
 dwg.layers.new(name="lens_outline", dxfattribs={"color": 7})
+dwg.layers.new(name="case_outline", dxfattribs={"color": 5})
 
 for ctr in squeezed:
      for n in range(len(ctr)):
@@ -83,6 +88,14 @@ for ctr in squeezed:
         x_coord = ctr[n] * pixels2mm
         y_coord = ctr[(n+1)%len(ctr)] * pixels2mm
         msp.add_line(x_coord, y_coord , dxfattribs={"layer": "lens_outline", "lineweight": -3})
+
+for ctr in squeezed2:
+     for n in range(len(ctr)):
         
+        x_coord = ctr[n] * pixels2mm
+        y_coord = ctr[(n+1)%len(ctr)] * pixels2mm
+        msp.add_line(x_coord, y_coord , dxfattribs={"layer": "case_outline", "lineweight": -3})
+
+
 output_file = sys.argv[2]
 dwg.saveas(output_file)
