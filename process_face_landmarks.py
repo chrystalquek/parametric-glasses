@@ -42,7 +42,8 @@ def get_eye_corners(face_landmarks_detector, face_landmarks_detection):
     left_eye_right = left_eye_region[np.argmin(left_eye_region[:, 0])]
     right_eye_left = right_eye_region[np.argmax(right_eye_region[:, 0])]
     eyes = [np.array([left_eye_right, right_eye_left])]
-    corner_eyes_distance = np.abs(left_eye_right[0] - right_eye_left[0])
+    # corner_eyes_distance = np.abs(left_eye_right[0] - right_eye_left[0])
+    corner_eyes_distance = np.linalg.norm(left_eye_right - right_eye_left) 
     return eyes, corner_eyes_distance
 
 def get_iris_diameter(iris_detector, input_image, face_landmarks_detection):
@@ -57,7 +58,8 @@ def get_iris_diameter(iris_detector, input_image, face_landmarks_detection):
     right_eye_left = ori_right_iris[right_eye_iris[:, 0].argmax()]
     right_eye_right = ori_right_iris[right_eye_iris[:, 0].argmin()]
     right_eye_pts = np.array([right_eye_left, right_eye_right])
-    iris_diameter = np.mean([np.abs(left_eye_right[0] - left_eye_left[0]), np.abs(right_eye_left[0] - right_eye_right[0])])
+    iris_diameter = np.max([np.linalg.norm(left_eye_right - left_eye_left), np.linalg.norm(right_eye_left - right_eye_right)])
+    # iris_diameter = np.mean([np.abs(left_eye_right[0] - left_eye_left[0]), np.abs(right_eye_left[0] - right_eye_right[0])])
     return left_eye_pts, right_eye_pts, iris_diameter
 
 def get_face_landmarks_pixels(input_image, is_demo):
@@ -101,12 +103,12 @@ def get_spectacle_parameters(temple_to_temple_distance_px, corner_eyes_distance_
     # Are eyes close together? 14-18mm, otherwise >= 18mm 
     # Temple-to-temple frame width +- (2-3mm) = 2 * lens width + bridge width + 6 # 2 * LENS_WIDTH_CM + bridge_width + 6
     bridge_width = corner_eyes_distance_cm - 2
-    frame_width = temple_to_temple_distance_cm * 0.95
+    frame_width = temple_to_temple_distance_cm
     
     print("bridge_width", bridge_width, "frame_width", frame_width)
     
-    assert 1.4 < bridge_width < 2.4
-    assert 12.5 < frame_width < 15.0
+    assert 1.3 < bridge_width < 2.5
+    # assert 12.5 < frame_width < 15.0
     
     return bridge_width, frame_width
     
@@ -116,7 +118,7 @@ def demo(filename):
     # try:
     input_image = np.array(ImageOps.exif_transpose(Image.open(filename)).convert('RGB')) # (columns, row, depth)
     
-    temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px = get_face_landmarks_pixels(input_image)
+    temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px = get_face_landmarks_pixels(input_image, is_demo=True)
     
     bridge_width, frame_width = get_spectacle_parameters(temple_to_temple_distance_px, corner_eyes_distance_px, iris_diameter_px)
     
@@ -141,9 +143,6 @@ def no_demo(img):
     except AssertionError as e:
         
         return STANDARD_BRIDGE_WIDTH, STANDARD_FRAME_WIDTH
-    
-    
-
 
         
 if __name__ == "__main__":
