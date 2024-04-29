@@ -77,7 +77,7 @@ class FaceLandmarksDetector():
         self.mp_face_mesh = mp.solutions.face_mesh
         self.face_mesh_detector = self.mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5)
 
-        with open('./data/face_landmarks.json', 'rb') as jsonfile:
+        with open('./face_landmarks/data/face_landmarks.json', 'rb') as jsonfile:
             self.landmark_indices = json.load(jsonfile)
     def predict(self, image):
         # INPUT: RGB image

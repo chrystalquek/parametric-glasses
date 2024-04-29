@@ -6,10 +6,7 @@ import numpy as np
 import torchvision.transforms as transforms
 from PIL import Image
 from torch.autograd import Variable
-try:
-    from libs.face import FaceLandmarksDetector
-except:
-    from face import FaceLandmarksDetector
+from .face import FaceLandmarksDetector
 
 class IrisDetector():
     def __init__(self) -> None:    
@@ -157,7 +154,7 @@ class Conv2d_block_v2(nn.Module):
 
 
 class MediaPipeIris(nn.Module):
-    def __init__(self, pretrained=False, ckpt_path="./data/iris_landmark.pth", weights_path=None) -> None:
+    def __init__(self, pretrained=False, ckpt_path="./face_landmarks/data/iris_landmark.pth", weights_path=None) -> None:
         super(MediaPipeIris, self).__init__()
 
         self.padding = nn.ZeroPad2d((0,2,0,2))
@@ -253,7 +250,7 @@ class MediaPipeIris(nn.Module):
         if pretrained: 
             if weights_path is not None or not os.path.exists(ckpt_path):
                 if weights_path is None:
-                    weights_path = './data/weights.pkl'
+                    weights_path = './face_landmarks/data/weights.pkl'
                 with open(weights_path, 'rb') as picklefile:
                     d = pickle.load(picklefile)
                 self.Conv2D_0.weight = torch.nn.Parameter(torch.from_numpy(d['Conv2D_0_weight']))
@@ -460,10 +457,10 @@ def rel_error(x, y):
 
 if __name__ == "__main__":
 
-    with open("./data/weights.pkl", 'rb') as picklefile:
+    with open("./face_landmarks/data/weights.pkl", 'rb') as picklefile:
         d = pickle.load(picklefile)
 
-    model = MediaPipeIris(pretrained=True, weights_path="./data/weights.pkl")
+    model = MediaPipeIris(pretrained=True, weights_path="./face_landmarks/data/weights.pkl")
 
     eyeContour, iris = model(torch.from_numpy(d["input"]))
 
